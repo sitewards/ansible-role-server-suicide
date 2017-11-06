@@ -42,7 +42,7 @@ function is_access_log_expired($current_date_time,$options)
     $interval = $last_date_time->diff($current_date_time);
 
     // Check if latest access log entry is higher than the defined time interval
-    if ( (int) substr($options['interval'],0,-1) < (int) $interval->format('%' . substr($options['interval'], -1))) {
+    if ( (int) substr($options['interval'],0,-1) <= (int) $interval->format('%' . substr($options['interval'], -1))) {
         return true;
     }
 
@@ -55,7 +55,7 @@ function is_uptime_expired($current_date_time, $options)
     $interval = $uptime->diff($current_date_time);
 
     // Check if server is up for longer than the defined time interval
-    if ( (int) $options['interval'] < (int) $interval->format('%' . substr($options['interval'], -1))) {
+    if ( (int) substr($options['interval'],0,-1) <= (int) $interval->format('%' . substr($options['interval'], -1))) {
         return true;
     }
 
