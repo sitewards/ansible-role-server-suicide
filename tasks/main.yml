@@ -1,0 +1,22 @@
+---
+- name: make sure maintenance directory is present
+  file:
+    path: "{{ sitewards_server_suicide_base_path }}"
+    state: directory
+    mode: 0755
+    recurse: yes
+
+- name: make sure required script is present
+  template:
+    src: "{{ item }}"
+    dest: "{{ sitewards_server_suicide_base_path }}"
+    owner: "{{ sitewards_server_suicide_owner }}"
+    group: "{{ sitewards_server_suicide_group }}"
+  with_items:
+    - monitor.php
+
+- cron:
+    name: monitor server termination
+    user: "{{ sitewards_server_suicide_owner }}"
+    minute: "{{ sitewards_server_suicide_cronjob_execution_interval }}"
+    job: php {{ sitewards_server_suicide_base_path }}/monitor.php --termination {{ sitewards_server_suicide_termination_url }} --logfile {{ sitewards_server_suicide_logfile_path }} --interval {{ sitewards_server_suicide_server_termination_check_interval }}
