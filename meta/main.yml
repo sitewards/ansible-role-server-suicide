@@ -1,0 +1,11 @@
+galaxy_info:
+  author: Sitewards
+  description: Executes specifc cURL callback when server is not used longer then specified time.
+  company: Sitewards
+  license: OSL-3.0
+
+  min_ansible_version: 2.4
+
+  galaxy_tags: []
+
+dependencies: []
