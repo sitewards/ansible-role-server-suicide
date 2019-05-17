@@ -15,6 +15,13 @@
   with_items:
     - monitor.php
 
+- name: make first request to the server to populate access_log
+  uri:
+    url: "{{ sitewards_server_suicide_warm_up_url }}"
+    follow_redirects: none
+    status_code: 200, 201, 208, 301, 302
+  when: sitewards_server_suicide_warm_up_url != ''
+
 - cron:
     name: monitor server termination
     user: "{{ sitewards_server_suicide_owner }}"
