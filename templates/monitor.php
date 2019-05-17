@@ -12,54 +12,48 @@ function main()
 
     $current_date_time = new DateTimeImmutable();
 
-    if (!is_uptime_expired($current_date_time, $options)) {
+    if (!is_uptime_expired($options['interval'])) {
         return 0;
     }
 
-    if (is_access_log_expired($current_date_time, $options)) {
+    if (is_access_log_expired($options['logfile'], $options['interval'])) {
         trigger_termination($options['termination']);
+
+        return 1;
     }
 
     return 0;
 }
 
-function is_access_log_expired($current_date_time,$options)
+function is_access_log_expired($logfile, $logExpiryInterval)
 {
     // check last access time
-    $file_ref = escapeshellarg($options['logfile']);
-    $line    = `tail -n 1 $file_ref`;
+    $logfileRef = escapeshellarg($logfile);
+    $line       = `tail -n 1 $logfileRef`;
 
     // get datetime from the line and compare it to the current datetime
     preg_match('/\[(.*?)\]/', $line, $matches);
 
-    // the access log is empty, no one touched the machine
+    // the access log is empty, or wrong format, let's try to check mtime
     if (empty($matches)) {
-        return true;
+        $lastLogEntry = filemtime($logfile);
+    } else {
+        $lastLogEntry = new DateTimeImmutable($matches[1]);
     }
 
-    $last_date_time = new DateTimeImmutable($matches[1]);
-
-    $interval = $last_date_time->diff($current_date_time);
+    $expiryThreshold = new DateTimeImmutable('-' . $logExpiryInterval);
 
     // Check if latest access log entry is higher than the defined time interval
-    if ( (int) substr($options['interval'],0,-1) <= (int) $interval->format('%' . substr($options['interval'], -1))) {
-        return true;
-    }
-
-    return false;
+    return $lastLogEntry < $expiryThreshold;
 }
 
-function is_uptime_expired($current_date_time, $options)
+function is_uptime_expired($uptimeExpiryInterval)
 {
-    $uptime = new DateTimeImmutable(shell_exec('uptime -s'));
-    $interval = $uptime->diff($current_date_time);
+    $upSince         = new DateTimeImmutable(shell_exec('uptime -s'));
+    $expiryThreshold = new DateTimeImmutable('-' . $uptimeExpiryInterval);
 
     // Check if server is up for longer than the defined time interval
-    if ( (int) substr($options['interval'],0,-1) <= (int) $interval->format('%' . substr($options['interval'], -1))) {
-        return true;
-    }
-
-    return false;
+    return $upSince < $expiryThreshold;
 }
 
 function validate_options(&$options)
@@ -76,8 +70,9 @@ function validate_options(&$options)
         throw new RuntimeException('Termination URL must be specified.');
     }
 
-    if (!isset($options['interval'])) {
-        $options['interval'] = '4h';
+    $options['interval'] = trim($options['interval']);
+    if (!isset($options['interval']) || !preg_match('/^\d+[a-z]+$/' , $options['interval'])) {
+        $options['interval'] = '4days';
     }
 }
 
@@ -96,5 +91,4 @@ function trigger_termination($uri)
     curl_close($ch);
 }
 
-main();
-
+exit(main());
