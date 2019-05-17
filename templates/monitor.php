@@ -76,7 +76,23 @@ function validate_options(&$options)
     }
 }
 
-function trigger_termination($uri)
+function trigger_termination($urlOrShellCommand)
+{
+    var_dump($urlOrShellCommand);
+    var_dump(filter_var($urlOrShellCommand, FILTER_VALIDATE_URL));
+    if (filter_var($urlOrShellCommand, FILTER_VALIDATE_URL) !== false) {
+        trigger_termination_via_url($urlOrShellCommand);
+    } else {
+        trigger_termination_via_cli($urlOrShellCommand);
+    }
+}
+
+function trigger_termination_via_cli($shellCommand)
+{
+    system($shellCommand);
+}
+
+function trigger_termination_via_url($uri)
 {
     $ch = curl_init();
 
