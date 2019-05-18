@@ -73,9 +73,6 @@ function is_stdin_expired($stdin, $logExpiryInterval)
     $lastLogEntry    = new DateTimeImmutable($matches[1]);
     $expiryThreshold = new DateTimeImmutable('-' . $logExpiryInterval);
 
-echo $lastLogEntry->format('Y-m-d H:i:s') . PHP_EOL;
-echo $expiryThreshold->format('Y-m-d H:i:s') . PHP_EOL;
-
     // Check if latest access log entry is higher than the defined time interval
     return $lastLogEntry < $expiryThreshold;
 }
@@ -126,10 +123,10 @@ function validate_options(&$options, $logfileRequired)
         throw new RuntimeException('Termination URL must be specified.');
     }
 
-    $options['interval'] = trim($options['interval']);
     if (!isset($options['interval']) || !preg_match('/^\d+[a-z]+$/' , $options['interval'])) {
         $options['interval'] = '4days';
     }
+    $options['interval'] = trim($options['interval']);
 }
 
 function trigger_termination($urlOrShellCommand)
