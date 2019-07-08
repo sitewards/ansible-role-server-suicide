@@ -32,7 +32,7 @@ defaults/main.yml file
 
 ## Usage
 
-simplies use case:
+### Parsing log file with the tool
 
 ```
 php monitor.php --logfile /var/log/php_errors.log --interval 4hours --termination "shutdown"
@@ -41,7 +41,7 @@ php monitor.php --logfile /var/log/php_errors.log --interval 4hours --terminatio
 this will check if machine is running longer than `4 hours` and if last entry in the `/var/log/php_errors.log` file was 
 made at least `4 hours` ago, if both are true - "shutdown" command will be executed by the script.
 
---
+### Parsing log file with external tool and using pipe
 
 it is also possible to parse log file manually and feed it in the script:
 ```
@@ -49,3 +49,35 @@ grep nginx /var/log/syslog | grep -v "health_check" | tail -1  | php monitor.php
 ```
 
 PLEASE NOTE: only the last line of STDIN will be processed in this case, `--logfile` is ignored in this mode.
+
+### Parsing log file with external tool, using pipe and terminating the self with AWS
+
+When on AWS, make sure the following or similar policy is attached to the instance via an IAM role:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:TerminateInstances",
+                "ec2:DescribeInstances"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ARN": "${ec2:SourceInstanceARN}"
+                }
+            }
+        }
+    ]
+}
+```
+
+then you can do something like:
+
+```
+grep nginx /var/log/syslog | grep -v "health_check" | tail -1  | php monitor.php --interval 20minutes --termination "aws ec2 terminate-instances --instance-ids $(curl http://169.254.169.254/latest/meta-data/instance-id/ 2>/dev/null) --region $(curl http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null | sed 's/.$//')"
+```
