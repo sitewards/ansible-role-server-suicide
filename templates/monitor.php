@@ -63,7 +63,7 @@ function get_stdin()
 function is_stdin_expired($stdin, $logExpiryInterval)
 {
     // get datetime from the line and compare it to the current datetime
-    preg_match('/\[(.*?)\]/', $stdin, $matches);
+    preg_match('/\[([^\[\]]*:[^\[\]]*)\]/', $stdin, $matches);
 
     // the access log is empty, or wrong format, consider it expired
     if (empty($matches)) {
@@ -85,7 +85,7 @@ function is_access_log_expired($logfile, $logExpiryInterval)
     $line       = `tail -n 1 $logfileRef`;
 
     // get datetime from the line and compare it to the current datetime
-    preg_match('/\[(.*?)\]/', $line, $matches);
+    preg_match('/\[([^\[\]]*:[^\[\]]*)\]/', $line, $matches);
 
     // the access log is empty, or wrong format, let's try to check mtime
     if (empty($matches)) {
