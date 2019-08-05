@@ -22,9 +22,10 @@
     status_code: 200, 201, 208, 301, 302
   when: sitewards_server_suicide_warm_up_url != ''
 
-- cron:
+- name: Create crontask to check for server activity in specified period.
+  when: sitewards_server_suicide_active|bool
+  cron:
     name: monitor server termination
     user: "{{ sitewards_server_suicide_owner }}"
     minute: "{{ sitewards_server_suicide_cronjob_execution_interval }}"
     job: "{{ sitewards_server_suicide_stdin_data_feed }} | php {{ sitewards_server_suicide_base_path }}/monitor.php --termination \"{{ sitewards_server_suicide_termination_url }}\" --logfile \"{{ sitewards_server_suicide_logfile_path }}\" --interval \"{{ sitewards_server_suicide_server_termination_check_interval }}\""
-    when: sitewards_server_suicide_active
