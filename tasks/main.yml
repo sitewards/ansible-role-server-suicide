@@ -27,3 +27,4 @@
     user: "{{ sitewards_server_suicide_owner }}"
     minute: "{{ sitewards_server_suicide_cronjob_execution_interval }}"
     job: "{{ sitewards_server_suicide_stdin_data_feed }} | php {{ sitewards_server_suicide_base_path }}/monitor.php --termination \"{{ sitewards_server_suicide_termination_url }}\" --logfile \"{{ sitewards_server_suicide_logfile_path }}\" --interval \"{{ sitewards_server_suicide_server_termination_check_interval }}\""
+    when: sitewards_server_suicide_active
