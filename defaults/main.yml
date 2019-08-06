@@ -10,3 +10,5 @@ sitewards_server_suicide_server_id: ""
 sitewards_server_suicide_termination_url: "http://showroom-hypervisor.sitewards.net/api/servers/{{ sitewards_server_suicide_server_id }}/terminate" 
 sitewards_server_suicide_stdin_data_feed: "echo ''" 
 sitewards_server_suicide_warm_up_url: ""
+
+sitewards_server_suicide_active: true

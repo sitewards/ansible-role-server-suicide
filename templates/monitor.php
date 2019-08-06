@@ -63,7 +63,8 @@ function get_stdin()
 function is_stdin_expired($stdin, $logExpiryInterval)
 {
     // get datetime from the line and compare it to the current datetime
-    preg_match('/\[([^\[\]]*:[^\[\]]*)\]/', $stdin, $matches);
+    // to identify date in log regexp searches for a first value between square brackets that have at least 10 chars
+    preg_match('/\[([^\]]{10,}?)\]/', $stdin, $matches);
 
     // the access log is empty, or wrong format, consider it expired
     if (empty($matches)) {
