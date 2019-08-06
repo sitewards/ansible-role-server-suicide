@@ -23,6 +23,11 @@
   when: sitewards_server_suicide_warm_up_url != ''
 
 - name: Create crontask to check for server activity in specified period.
+  pre_tasks:
+    - debug:
+        var: sitewards_server_suicide_active
+    - debug:
+        var: "{{ not sitewards_server_suicide_active|bool }}"
   cron:
     name: monitor server termination
     user: "{{ sitewards_server_suicide_owner }}"
