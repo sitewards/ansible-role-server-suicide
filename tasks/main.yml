@@ -22,9 +22,6 @@
     status_code: 200, 201, 208, 301, 302
   when: sitewards_server_suicide_warm_up_url != ''
 
-- debug:
-    msg: {{ sitewards_server_suicide_active }}
-
 - name: Create crontask to check for server activity in specified period.
   cron:
     name: monitor server termination
