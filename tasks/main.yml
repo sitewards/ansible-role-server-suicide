@@ -25,8 +25,12 @@
 - debug:
     var: sitewards_server_suicide_active
 - debug:
-    var: "{{ not sitewards_server_suicide_active|bool }}"
-    
+    var: "{{ not sitewards_server_suicide_active }}"
+- debug:
+    var: sitewards_server_suicide_active
+- debug:
+    var: "{{ not sitewards_server_suicide_active }}|bool"
+
 - name: Create crontask to check for server activity in specified period.
   cron:
     name: monitor server termination
