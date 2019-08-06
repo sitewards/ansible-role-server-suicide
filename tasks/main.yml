@@ -22,17 +22,17 @@
     status_code: 200, 201, 208, 301, 302
   when: sitewards_server_suicide_warm_up_url != ''
 
-- debug:
-    name: server suicide value
+- name: server suicide value
+  debug:
     var: sitewards_server_suicide_active
-- debug:
-    name: server suicide cast to boolean
+- name: server suicide cast to boolean
+  debug:
     var: sitewards_server_suicide_active
-- debug:
-    name: negation of server suicide
+- name: negation of server suicide
+  debug:
     var: "{{ not sitewards_server_suicide_active }}"
-- debug:
-    name: negation of server suicide cast to boolean
+- name: negation of server suicide cast to boolean
+  debug:
     var: "{{ not sitewards_server_suicide_active }}|bool"
 
 - name: Create crontask to check for server activity in specified period.
