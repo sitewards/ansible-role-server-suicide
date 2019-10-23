@@ -90,7 +90,7 @@ function is_access_log_expired($logfile, $logExpiryInterval)
 
     // the access log is empty, or wrong format, let's try to check mtime
     if (empty($matches)) {
-        $lastLogEntry = filemtime($logfile);
+        $lastLogEntry = DateTimeImmutable::createFromFormat('U', filemtime($logfile));
     } else {
         $lastLogEntry = new DateTimeImmutable($matches[1]);
     }
