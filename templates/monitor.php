@@ -7,30 +7,31 @@
 
 function main()
 {
-    $stdinBuffer = get_stdin();
-    $hasStdin    = strlen($stdinBuffer) > 0;
-
-    $options = getopt('', ['logfile:', 'termination:', 'interval:']);
-    validate_options($options, !$hasStdin);
-
-    $current_date_time = new DateTimeImmutable();
+    $options = getopt('', ['logfile:', 'termination:', 'interval:', 'syslog:']);
+    validate_options($options);
 
     if (!is_uptime_expired($options['interval'])) {
         return 0;
     }
 
-    if ($hasStdin) {
-        if (is_stdin_expired($stdinBuffer, $options['interval'])) {
-            trigger_termination($options['termination']);
-        
-            return 1;
-        }
+    $terminate = false;
+    if (!empty($options['logfile'])) {
+        $terminate = is_access_log_expired($options['logfile'], $options['interval']);
+    } elseif (!empty($options['syslog'])){
+        $terminate = is_sys_log_expired($options['syslog'], $options['interval']);
     } else {
-        if (is_access_log_expired($options['logfile'], $options['interval'])) {
-            trigger_termination($options['termination']);
-
-            return 1;
+        $stdinBuffer = get_stdin();
+        // check if standard input has content
+        if(strlen($stdinBuffer) > 0){
+            $terminate = is_stdin_expired($stdinBuffer, $options['interval']);
+        } else {
+            throw new RuntimeException('No input from standard in. Access log file or system log must be specified.');
         }
+    }
+
+    if($terminate){
+        trigger_termination($options['termination']);
+        return 1;
     }
 
     return 0;
@@ -68,7 +69,7 @@ function is_stdin_expired($stdin, $logExpiryInterval)
 
     // the access log is empty, or wrong format, consider it expired
     if (empty($matches)) {
-        return 1;
+        return true;
     }
 
     $lastLogEntry    = new DateTimeImmutable($matches[1]);
@@ -101,6 +102,13 @@ function is_access_log_expired($logfile, $logExpiryInterval)
     return $lastLogEntry < $expiryThreshold;
 }
 
+function is_sys_log_expired($unit, $logExpiryInterval)
+{
+        $unitRef = escapeshellarg($unit);
+        $line = `journalctl -u $unit -n 1 -o cat`;
+        return !(bool)$line;
+}
+
 function is_uptime_expired($uptimeExpiryInterval)
 {
     $upSince         = new DateTimeImmutable(shell_exec('uptime -s'));
@@ -110,13 +118,10 @@ function is_uptime_expired($uptimeExpiryInterval)
     return $upSince < $expiryThreshold;
 }
 
-function validate_options(&$options, $logfileRequired)
+function validate_options(&$options)
 {
-    if ($logfileRequired && !isset($options['logfile'])) {
-        throw new RuntimeException('Access log file must be specified.');
-    }
 
-    if ($logfileRequired && !file_exists($options['logfile'])) {
+    if (!empty($options['logfile']) && !file_exists($options['logfile'])) {
         throw new RuntimeException('Access log file does not exist.');
     }
 
