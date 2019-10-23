@@ -9,6 +9,7 @@ function main()
 {
     $options = getopt('', ['logfile:', 'termination:', 'interval:', 'syslog:']);
     validate_options($options);
+    $expiryThreshold = new DateTimeImmutable('-' . $options['interval']);
 
     if (!is_uptime_expired($options['interval'])) {
         return 0;
@@ -16,14 +17,14 @@ function main()
 
     $terminate = false;
     if (!empty($options['logfile'])) {
-        $terminate = is_access_log_expired($options['logfile'], $options['interval']);
+        $terminate = is_access_log_expired($options['logfile'], $expiryThreshold);
     } elseif (!empty($options['syslog'])){
-        $terminate = is_sys_log_expired($options['syslog'], $options['interval']);
+        $terminate = is_sys_log_expired($options['syslog'], $expiryThreshold);
     } else {
         $stdinBuffer = get_stdin();
         // check if standard input has content
         if(strlen($stdinBuffer) > 0){
-            $terminate = is_stdin_expired($stdinBuffer, $options['interval']);
+            $terminate = is_stdin_expired($stdinBuffer, $expiryThreshold);
         } else {
             throw new RuntimeException('No input from standard in. Access log file or system log must be specified.');
         }
@@ -61,45 +62,46 @@ function get_stdin()
 }
 
 
-function is_stdin_expired($stdin, $logExpiryInterval)
+function is_stdin_expired($stdin, DateTimeImmutable $expiryThreshold)
 {
-    // get datetime from the line and compare it to the current datetime
-    // to identify date in log regexp searches for a first value between square brackets that have at least 10 chars
-    preg_match('/\[([^\]]{10,}?)\]/', $stdin, $matches);
+    $lastLogEntry = get_date_from_text($stdin);
 
     // the access log is empty, or wrong format, consider it expired
-    if (empty($matches)) {
+    if (!$lastLogEntry) {
         return true;
     }
-
-    $lastLogEntry    = new DateTimeImmutable($matches[1]);
-    $expiryThreshold = new DateTimeImmutable('-' . $logExpiryInterval);
 
     // Check if latest access log entry is higher than the defined time interval
     return $lastLogEntry < $expiryThreshold;
 }
 
 
-function is_access_log_expired($logfile, $logExpiryInterval)
+function is_access_log_expired($logfile, DateTimeImmutable $expiryThreshold)
 {
     // check last access time
     $logfileRef = escapeshellarg($logfile);
     $line       = `tail -n 1 $logfileRef`;
 
     // get datetime from the line and compare it to the current datetime
-    preg_match('/\[([^\[\]]*:[^\[\]]*)\]/', $line, $matches);
+    $lastLogEntry = get_date_from_text($line);
 
     // the access log is empty, or wrong format, let's try to check mtime
-    if (empty($matches)) {
+    if (!$lastLogEntry) {
         $lastLogEntry = DateTimeImmutable::createFromFormat('U', filemtime($logfile));
-    } else {
-        $lastLogEntry = new DateTimeImmutable($matches[1]);
     }
-
-    $expiryThreshold = new DateTimeImmutable('-' . $logExpiryInterval);
 
     // Check if latest access log entry is higher than the defined time interval
     return $lastLogEntry < $expiryThreshold;
+}
+
+function get_date_from_text($text){
+    // to identify date in log regexp searches for a first value between square brackets that have at least 10 chars
+    preg_match('/\[([^\]]{10,}?)\]/', $text, $matches);
+    if(empty($matches)){
+        return false;
+    } else {
+        return new DateTimeImmutable($matches[1]);
+    }
 }
 
 function is_sys_log_expired($unit, $logExpiryInterval)
