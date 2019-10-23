@@ -11,7 +11,7 @@ function main()
     validate_options($options);
     $expiryThreshold = new DateTimeImmutable('-' . $options['interval']);
 
-    if (!is_uptime_expired($options['interval'])) {
+    if (!is_uptime_expired($expiryThreshold)) {
         return 0;
     }
 
@@ -126,12 +126,17 @@ function is_sys_log_expired($unit, DateTimeImmutable $expiryThreshold): bool
     return $lastLogEntry < $expiryThreshold;
 }
 
-function is_uptime_expired($uptimeExpiryInterval)
+/**
+ * Check if server is up for longer than the defined time interval
+ *
+ * @param $expiryThreshold
+ *
+ * @return bool
+ * @throws Exception
+ */
+function is_uptime_expired($expiryThreshold): bool
 {
     $upSince         = new DateTimeImmutable(shell_exec('uptime -s'));
-    $expiryThreshold = new DateTimeImmutable('-' . $uptimeExpiryInterval);
-
-    // Check if server is up for longer than the defined time interval
     return $upSince < $expiryThreshold;
 }
 
