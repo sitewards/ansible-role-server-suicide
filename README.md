@@ -55,6 +55,11 @@ For phrasing the syslog and check for log entries from a specific unit, you can 
 ```
 php monitor.php --termination "/sbin/shutdown -h now" --syslog "nginx.service" --interval "4hours"
 ```
+or in your ansible config
+```
+sitewards_server_suicide_logfile_path: ""
+sitewards_server_suicide_syslog_unit: "nginx.service"
+```
 
 
 ### Parsing log file with external tool, using pipe and terminating the self with AWS

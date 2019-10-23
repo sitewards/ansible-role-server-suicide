@@ -4,6 +4,7 @@ sitewards_server_suicide_group: "root"
 
 sitewards_server_suicide_cronjob_execution_interval: "*/15"
 sitewards_server_suicide_logfile_path: "/var/log/nginx/access.log"
+sitewards_server_suicide_syslog_unit: ""
 sitewards_server_suicide_server_termination_check_interval: "4hours"
 sitewards_server_suicide_base_path: "/opt/sitewards/server-suicide"
 sitewards_server_suicide_server_id: ""
