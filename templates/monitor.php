@@ -104,11 +104,26 @@ function get_date_from_text($text){
     }
 }
 
-function is_sys_log_expired($unit, $logExpiryInterval)
+/**
+ * Checks for the last log entry in the specified unit and compare it to the expiry threshold.
+ *
+ * @param                   $unit
+ * @param DateTimeImmutable $expiryThreshold
+ *
+ * @return bool
+ */
+function is_sys_log_expired($unit, DateTimeImmutable $expiryThreshold): bool
 {
-        $unitRef = escapeshellarg($unit);
-        $line = `journalctl -u $unit -n 1 -o cat`;
-        return !(bool)$line;
+    $unitRef      = escapeshellarg($unit);
+    $lastLogEvent = json_decode(`journalctl -u $unitRef -n 1 -o json`, true);
+    if (empty($lastLogEvent)) {
+        // the access log is empty, or wrong format, consider it expired
+        return false;
+    }
+    // convert milliseconds into seconds from begin of unix epoch
+    $lastLogTimeSeconds = substr($lastLogEvent['__REALTIME_TIMESTAMP'], 0, -6);
+    $lastLogEntry       = DateTimeImmutable::createFromFormat('U', $lastLogTimeSeconds);
+    return $lastLogEntry < $expiryThreshold;
 }
 
 function is_uptime_expired($uptimeExpiryInterval)
