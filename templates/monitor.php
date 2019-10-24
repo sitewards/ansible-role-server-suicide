@@ -151,7 +151,7 @@ function get_date_from_text($text){
 function is_sys_log_expired($unit, DateTimeImmutable $expiryThreshold): bool
 {
     $unitRef      = escapeshellarg($unit);
-    $lastLogEvent = json_decode(`journalctl -u $unitRef -n 1 -o json`, true);
+    $lastLogEvent = json_decode(`/bin/journalctl -u $unitRef -n 1 -o json`, true);
     if (empty($lastLogEvent)) {
         // the access log is empty, or wrong format, consider it expired
         return false;
