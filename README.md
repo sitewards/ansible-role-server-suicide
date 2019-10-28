@@ -48,7 +48,7 @@ it is also possible to parse log file manually and feed it in the script:
 grep nginx /var/log/syslog | grep -v "health_check" | tail -1  | php monitor.php --interval 20minutes --termination "/sbin/shutdown -h now"
 ```
 
-PLEASE NOTE: only the last line of STDIN will only be processed if no other input is given by `--logfile` or `--syslog`
+PLEASE NOTE: Only the last line of STDIN will be processed. STDIN will only be processed, if no other input is given by `--logfile` or `--syslog`
 
 ### Parsing Syslog
 For phrasing the syslog and check for log entries from a specific unit, you can use the following:
